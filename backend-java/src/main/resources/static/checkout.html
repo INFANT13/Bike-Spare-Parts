@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - BikeSparePro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-[#0a0f1d] text-slate-100 flex flex-col min-h-screen">
+
+    <header class="border-b border-slate-800/80 bg-[#0a0f1d]/90 backdrop-blur-md sticky top-0 z-40"></header>
+
+    <main class="flex-grow max-w-3xl mx-auto px-4 py-12 w-full space-y-6">
+        <div>
+            <h1 class="text-3xl font-extrabold text-white">Secure Checkout</h1>
+            <p class="text-slate-400 text-sm">Provide your shipping coordinates to finalize your order.</p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-8">
+            <div class="glass-panel p-8 rounded-3xl border border-slate-800 space-y-6">
+                <form id="checkout-form" onsubmit="handleCheckout(event)" class="space-y-4">
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Contact Phone Number</label>
+                        <input type="text" id="phone" required placeholder="e.g. 9876543210" class="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-amber-500 text-sm">
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-wider">Shipping Address</label>
+                        <textarea id="address" required rows="4" placeholder="Enter your full street address, landmark, city, and PIN code." class="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-amber-500 text-sm"></textarea>
+                    </div>
+
+                    <div id="checkout-summary" class="bg-slate-950/40 p-4 rounded-xl border border-slate-850 space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-slate-450">Items count</span>
+                            <span id="items-count" class="font-bold">0</span>
+                        </div>
+                        <div class="flex justify-between text-base font-extrabold text-white">
+                            <span>Amount Due</span>
+                            <span id="total-amount" class="text-amber-500">Rs. 0.00</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="btn-submit" class="w-full py-4 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-sm transition-smooth shadow-lg hover:shadow-amber-500/20">
+                        Place Order & Simulate Payment
+                    </button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-slate-950"></footer>
+
+    <script src="js/app.js"></script>
+    <script>
+        // Redirect if not logged in
+        const user = getUser();
+        if (!user) {
+            window.location.href = 'auth.html';
+        }
+
+        async function initCheckout() {
+            // Load user profile details if they have phone/address
+            if (user.phone) document.getElementById('phone').value = user.phone;
+            if (user.address) document.getElementById('address').value = user.address;
+
+            // Fetch cart to check if items exist and display values
+            const cartData = await fetchAPI('/api/cart');
+            if (cartData.success && cartData.items && cartData.items.length > 0) {
+                let count = 0;
+                let total = 0;
+                cartData.items.forEach(item => {
+                    count += item.quantity;
+                    total += item.product.price * item.quantity;
+                });
+                document.getElementById('items-count').innerText = count;
+                document.getElementById('total-amount').innerText = `Rs. ${total.toFixed(2)}`;
+            } else {
+                showToast('Your cart is empty. Redirecting to catalog.', 'error');
+                setTimeout(() => {
+                    window.location.href = 'catalog.html';
+                }, 1500);
+            }
+        }
+
+        async function handleCheckout(e) {
+            e.preventDefault();
+            const phone = document.getElementById('phone').value;
+            const shippingAddress = document.getElementById('address').value;
+            const btnSubmit = document.getElementById('btn-submit');
+
+            btnSubmit.innerText = 'Creating order...';
+            btnSubmit.disabled = true;
+
+            // 1. Request Checkout
+            const orderRes = await fetchAPI('/api/orders/checkout', {
+                method: 'POST',
+                body: JSON.stringify({ shippingAddress, phone })
+            });
+
+            if (!orderRes.success) {
+                showToast(orderRes.message || 'Checkout failed. Please try again.', 'error');
+                btnSubmit.innerText = 'Place Order & Simulate Payment';
+                btnSubmit.disabled = false;
+                return;
+            }
+
+            btnSubmit.innerText = 'Processing payment simulation...';
+
+            // 2. Mock payment verification
+            const verifyRes = await fetchAPI('/api/orders/verify-payment', {
+                method: 'POST',
+                body: JSON.stringify({
+                    orderId: orderRes.orderId,
+                    razorpay_payment_id: orderRes.paymentId,
+                    isDemo: true
+                })
+            });
+
+            if (verifyRes.success) {
+                showToast('Payment successful! Your order has been placed.', 'success');
+                updateCartBadge();
+                setTimeout(() => {
+                    window.location.href = 'profile.html';
+                }, 1500);
+            } else {
+                showToast(verifyRes.message || 'Payment simulation failed.', 'error');
+                btnSubmit.innerText = 'Place Order & Simulate Payment';
+                btnSubmit.disabled = false;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initCheckout);
+    </script>
+</body>
+</html>

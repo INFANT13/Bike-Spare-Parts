@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart - BikeSparePro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-[#0a0f1d] text-slate-100 flex flex-col min-h-screen">
+
+    <header class="border-b border-slate-800/80 bg-[#0a0f1d]/90 backdrop-blur-md sticky top-0 z-40"></header>
+
+    <main class="flex-grow max-w-5xl mx-auto px-4 py-12 w-full space-y-6">
+        <div>
+            <h1 class="text-3xl font-extrabold text-white">Your Cart</h1>
+            <p class="text-slate-400 text-sm">Review your selected spare parts before checking out.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Items Column -->
+            <div class="md:col-span-2 space-y-4">
+                <div id="cart-items" class="space-y-4">
+                    <!-- Dynamic Cart Items -->
+                    <div class="text-center py-12 text-slate-500">Loading your cart...</div>
+                </div>
+
+                <div id="cart-actions" class="flex justify-between items-center hidden">
+                    <a href="catalog.html" class="text-sm font-bold text-amber-500 hover:text-amber-400 flex items-center space-x-1.5 transition-smooth">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        <span>Continue Shopping</span>
+                    </a>
+                    <button onclick="clearCart()" class="text-xs font-bold text-red-400 hover:text-red-300 transition-smooth">
+                        Clear All Items
+                    </button>
+                </div>
+            </div>
+
+            <!-- Summary Column -->
+            <div id="cart-summary" class="hidden">
+                <div class="glass-panel p-6 rounded-2xl border border-slate-800 space-y-6 sticky top-24">
+                    <h3 class="text-lg font-bold text-white border-b border-slate-850 pb-3">Order Summary</h3>
+                    
+                    <div class="space-y-3">
+                        <div class="flex justify-between text-sm text-slate-400">
+                            <span>Subtotal</span>
+                            <span id="summary-subtotal" class="text-slate-200">Rs. 0.00</span>
+                        </div>
+                        <div class="flex justify-between text-sm text-slate-400">
+                            <span>Shipping</span>
+                            <span class="text-emerald-400 font-bold">FREE Delivery</span>
+                        </div>
+                        <div class="flex justify-between text-base font-extrabold text-white border-t border-slate-850 pt-3">
+                            <span>Total Price</span>
+                            <span id="summary-total" class="text-amber-500">Rs. 0.00</span>
+                        </div>
+                    </div>
+
+                    <a href="checkout.html" class="w-full block py-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 text-center font-bold rounded-xl text-sm transition-smooth shadow-lg hover:shadow-amber-500/25">
+                        Proceed to Checkout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-slate-950"></footer>
+
+    <script src="js/app.js"></script>
+    <script>
+        // Redirect if not logged in
+        if (!getUser()) {
+            window.location.href = 'auth.html';
+        }
+
+        async function loadCart() {
+            const data = await fetchAPI('/api/cart');
+            const container = document.getElementById('cart-items');
+            const summary = document.getElementById('cart-summary');
+            const actions = document.getElementById('cart-actions');
+
+            if (data.success && data.items) {
+                if (data.items.length === 0) {
+                    container.innerHTML = `
+                        <div class="glass-panel p-12 rounded-2xl border border-slate-800 text-center space-y-4">
+                            <div class="w-16 h-16 rounded-full bg-slate-900 flex items-center justify-center mx-auto text-slate-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                            </div>
+                            <h3 class="text-white font-bold text-lg">Your cart is currently empty</h3>
+                            <p class="text-slate-450 text-sm max-w-xs mx-auto">Looks like you haven't added any spare parts yet.</p>
+                            <a href="catalog.html" class="inline-block px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition-smooth">
+                                Start Browsing Parts
+                            </a>
+                        </div>
+                    `;
+                    summary.classList.add('hidden');
+                    actions.classList.add('hidden');
+                    return;
+                }
+
+                container.innerHTML = data.items.map(item => `
+                    <div class="glass-panel p-4 rounded-2xl border border-slate-800 flex items-center justify-between gap-4">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-16 h-16 rounded-xl bg-slate-900 border border-slate-800 overflow-hidden shrink-0">
+                                <img src="${item.product.image}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=200';" alt="${item.product.name}" class="w-full h-full object-cover">
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-slate-500 font-extrabold uppercase tracking-widest">${item.product.sku}</span>
+                                <h3 class="text-white font-extrabold text-sm line-clamp-1">${item.product.name}</h3>
+                                <p class="text-xs text-slate-400">Price: Rs. ${item.product.price}</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center space-x-6">
+                            <!-- Quantity selector -->
+                            <div class="flex items-center bg-slate-900 border border-slate-800 rounded-xl px-1.5 py-0.5">
+                                <button onclick="updateQty(${item.product.id}, ${item.quantity - 1})" class="p-1.5 text-slate-450 hover:text-white font-bold text-sm">-</button>
+                                <span class="w-8 text-center text-white text-xs font-bold">${item.quantity}</span>
+                                <button onclick="updateQty(${item.product.id}, ${item.quantity + 1}, ${item.product.stock})" class="p-1.5 text-slate-450 hover:text-white font-bold text-sm">+</button>
+                            </div>
+
+                            <div class="text-right min-w-[70px]">
+                                <p class="text-white font-black text-sm">Rs. ${(item.product.price * item.quantity).toFixed(2)}</p>
+                                <button onclick="removeItem(${item.product.id})" class="text-[10px] text-red-400 hover:text-red-300 font-bold transition-smooth">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Calculations
+                let subtotal = 0;
+                data.items.forEach(item => {
+                    subtotal += item.product.price * item.quantity;
+                });
+
+                document.getElementById('summary-subtotal').innerText = `Rs. ${subtotal.toFixed(2)}`;
+                document.getElementById('summary-total').innerText = `Rs. ${subtotal.toFixed(2)}`;
+
+                summary.classList.remove('hidden');
+                actions.classList.remove('hidden');
+            } else {
+                container.innerHTML = '<div class="text-center py-12 text-red-400">Failed to load cart. Please refresh the page.</div>';
+            }
+        }
+
+        async function updateQty(productId, newQty, maxStock) {
+            if (newQty < 1) return;
+            if (maxStock && newQty > maxStock) {
+                showToast(`Max available stock is ${maxStock}`, 'error');
+                return;
+            }
+
+            const res = await fetchAPI('/api/cart/update', {
+                method: 'PUT',
+                body: JSON.stringify({ productId, quantity: newQty })
+            });
+
+            if (res.success) {
+                loadCart();
+                updateCartBadge();
+            } else {
+                showToast(res.message || 'Failed to update quantity', 'error');
+            }
+        }
+
+        async function removeItem(productId) {
+            const res = await fetchAPI(`/api/cart/remove/${productId}`, {
+                method: 'DELETE'
+            });
+
+            if (res.success) {
+                showToast('Item removed from cart', 'success');
+                loadCart();
+                updateCartBadge();
+            } else {
+                showToast('Failed to remove item', 'error');
+            }
+        }
+
+        async function clearCart() {
+            if (!confirm('Are you sure you want to clear your shopping cart?')) return;
+            const res = await fetchAPI('/api/cart/clear', {
+                method: 'DELETE'
+            });
+
+            if (res.success) {
+                showToast('Cart cleared successfully', 'success');
+                loadCart();
+                updateCartBadge();
+            } else {
+                showToast('Failed to clear cart', 'error');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadCart);
+    </script>
+</body>
+</html>

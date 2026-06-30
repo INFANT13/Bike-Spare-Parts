@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - BikeSparePro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-[#0a0f1d] text-slate-100 flex flex-col min-h-screen">
+
+    <header class="border-b border-slate-800/80 bg-[#0a0f1d]/90 backdrop-blur-md sticky top-0 z-40"></header>
+
+    <main id="admin-main" class="flex-grow max-w-7xl mx-auto px-4 py-8 w-full space-y-8 hidden">
+        <!-- Dashboard Header -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+                <h1 class="text-3xl font-extrabold text-white">Store Management</h1>
+                <p class="text-slate-400 text-sm">Control inventory levels, track order logs, and manage classifications.</p>
+            </div>
+            <!-- Tabs Toggle -->
+            <div class="flex bg-slate-900 border border-slate-800 p-1.5 rounded-xl">
+                <button onclick="switchTab('parts')" id="tab-parts" class="px-5 py-2 rounded-lg font-bold text-xs bg-amber-500 text-slate-950 transition-smooth">
+                    Products Catalog
+                </button>
+                <button onclick="switchTab('orders')" id="tab-orders" class="px-5 py-2 rounded-lg font-bold text-xs text-slate-400 hover:text-white transition-smooth">
+                    Customer Orders
+                </button>
+            </div>
+        </div>
+
+        <!-- Metrics Section -->
+        <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="glass-panel p-5 rounded-2xl border border-slate-800">
+                <span class="text-[10px] text-slate-500 uppercase tracking-wider block">Total Sales</span>
+                <p id="metric-sales" class="text-2xl font-black text-white">Rs. 0.00</p>
+            </div>
+            <div class="glass-panel p-5 rounded-2xl border border-slate-800">
+                <span class="text-[10px] text-slate-500 uppercase tracking-wider block">Orders Processed</span>
+                <p id="metric-orders" class="text-2xl font-black text-white">0</p>
+            </div>
+            <div class="glass-panel p-5 rounded-2xl border border-slate-800">
+                <span class="text-[10px] text-slate-500 uppercase tracking-wider block">Parts Cataloged</span>
+                <p id="metric-products" class="text-2xl font-black text-white">0</p>
+            </div>
+            <div class="glass-panel p-5 rounded-2xl border border-slate-800">
+                <span class="text-[10px] text-slate-500 uppercase tracking-wider block">Low Stock Alert</span>
+                <p id="metric-lowstock" class="text-2xl font-black text-red-400">0</p>
+            </div>
+        </section>
+
+        <!-- Product Tab Content -->
+        <div id="content-parts" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Add Product Form -->
+            <div class="lg:col-span-1 glass-panel p-6 rounded-2xl border border-slate-800 space-y-4 h-fit">
+                <h3 class="text-white font-extrabold text-sm uppercase tracking-wider border-b border-slate-850 pb-2">Catalog New Part</h3>
+                <form id="add-product-form" onsubmit="handleAddProduct(event)" class="space-y-3">
+                    <div class="space-y-1">
+                        <label class="text-[10px] text-slate-450 font-bold uppercase tracking-wider">Part Name</label>
+                        <input type="text" id="p-name" required placeholder="e.g. O-Ring Chain" class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] text-slate-450 font-bold uppercase tracking-wider">SKU Code</label>
+                        <input type="text" id="p-sku" required placeholder="e.g. ENG-CHN-01" class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="space-y-1">
+                            <label class="text-[10px] text-slate-450 font-bold uppercase tracking-wider">Price (Rs.)</label>
+                            <input type="number" step="0.01" id="p-price" required placeholder="999.00" class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] text-slate-450 font-bold uppercase tracking-wider">Stock Units</label>
+                            <input type="number" id="p-stock" required placeholder="10" class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500">
+                        </div>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] text-slate-450 font-bold uppercase tracking-wider">Category</label>
+                        <select id="p-category" required class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500">
+                            <!-- Dynamic Categories -->
+                        </select>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] text-slate-450 font-bold uppercase tracking-wider">Image Path</label>
+                        <input type="text" id="p-image" placeholder="/uploads/placeholder.jpg" value="/uploads/prod_brake_pads.jpg" class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] text-slate-450 font-bold uppercase tracking-wider">Specifications (JSON Text)</label>
+                        <textarea id="p-specs" rows="3" class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs font-mono focus:outline-none focus:border-amber-500">{"Material": "Alloy Steel", "Compatibility": "Universal"}</textarea>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] text-slate-450 font-bold uppercase tracking-wider">Description</label>
+                        <textarea id="p-desc" rows="2" class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs focus:outline-none focus:border-amber-500"></textarea>
+                    </div>
+                    <button type="submit" class="w-full py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition-smooth mt-2">
+                        Add Product to Database
+                    </button>
+                </form>
+            </div>
+
+            <!-- Product Table list -->
+            <div class="lg:col-span-2 glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
+                <h3 class="text-white font-extrabold text-sm uppercase tracking-wider">Products Inventory</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="border-b border-slate-850 text-slate-500 font-bold">
+                                <th class="pb-3 w-1/4">Name</th>
+                                <th class="pb-3">SKU</th>
+                                <th class="pb-3">Price</th>
+                                <th class="pb-3">Stock</th>
+                                <th class="pb-3 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-list">
+                            <!-- Dynamic Table Rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Tab Content -->
+        <div id="content-orders" class="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4 hidden">
+            <h3 class="text-white font-extrabold text-sm uppercase tracking-wider">Sales Order Log</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="border-b border-slate-850 text-slate-500 font-bold">
+                            <th class="pb-3">Order ID</th>
+                            <th class="pb-3">Customer</th>
+                            <th class="pb-3">Amount</th>
+                            <th class="pb-3">Shipping Info</th>
+                            <th class="pb-3">Status</th>
+                            <th class="pb-3 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-list">
+                        <!-- Dynamic Order Rows -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Error message for Access Denied -->
+    <div id="admin-denied" class="max-w-md mx-auto py-20 text-center space-y-4 hidden">
+        <div class="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center mx-auto">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+        </div>
+        <h2 class="text-white font-extrabold text-2xl">Access Denied</h2>
+        <p class="text-slate-400">You must be logged in as an administrator to access the store management dashboard.</p>
+        <a href="index.html" class="inline-block px-5 py-2.5 bg-slate-800 text-slate-300 font-bold rounded-xl text-xs transition-smooth">
+            Go back Home
+        </a>
+    </div>
+
+    <footer class="bg-slate-950"></footer>
+
+    <script src="js/app.js"></script>
+    <script>
+        // Check administration rights
+        const user = getUser();
+        if (!user || user.role !== 'admin') {
+            document.getElementById('admin-denied').classList.remove('hidden');
+        } else {
+            document.getElementById('admin-main').classList.remove('hidden');
+            initDashboard();
+        }
+
+        let allCategories = [];
+
+        async function initDashboard() {
+            // Load Categories
+            const catData = await fetchAPI('/api/products/categories');
+            const select = document.getElementById('p-category');
+            if (catData.success && catData.categories) {
+                allCategories = catData.categories;
+                select.innerHTML = catData.categories.map(c => `
+                    <option value="${c.id}">${c.name}</option>
+                `).join('');
+            }
+
+            loadInventory();
+            loadAllOrders();
+        }
+
+        async function loadInventory() {
+            const data = await fetchAPI('/api/products');
+            const list = document.getElementById('inventory-list');
+            const metricProds = document.getElementById('metric-products');
+            const metricLowStock = document.getElementById('metric-lowstock');
+
+            if (data.success && data.products) {
+                metricProds.innerText = data.products.length;
+                
+                const lowStockCount = data.products.filter(p => p.stock < 10).length;
+                metricLowStock.innerText = lowStockCount;
+
+                list.innerHTML = data.products.map(p => `
+                    <tr class="border-b border-slate-900/50 py-3">
+                        <td class="py-3 font-bold text-white">${p.name}</td>
+                        <td class="py-3 text-slate-450">${p.sku}</td>
+                        <td class="py-3 text-amber-500 font-bold">Rs. ${p.price}</td>
+                        <td class="py-3 ${p.stock < 10 ? 'text-red-400 font-bold' : 'text-slate-350'}">${p.stock} units</td>
+                        <td class="py-3 text-right">
+                            <button onclick="deleteProduct(${p.id})" class="text-red-450 hover:text-red-300 font-bold text-[10px] cursor-pointer">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        async function loadAllOrders() {
+            const data = await fetchAPI('/api/orders/all-orders');
+            const list = document.getElementById('orders-list');
+            const metricOrders = document.getElementById('metric-orders');
+            const metricSales = document.getElementById('metric-sales');
+
+            if (data.success && data.orders) {
+                metricOrders.innerText = data.orders.length;
+
+                let sales = 0;
+                data.orders.forEach(o => {
+                    if (o.status !== 'cancelled') {
+                        sales += parseFloat(o.totalAmount);
+                    }
+                });
+                metricSales.innerText = `Rs. ${sales.toFixed(2)}`;
+
+                list.innerHTML = data.orders.map(o => {
+                    const statusColors = {
+                        pending: 'text-yellow-400',
+                        paid: 'text-emerald-400',
+                        shipped: 'text-blue-400',
+                        delivered: 'text-emerald-400',
+                        cancelled: 'text-red-400'
+                    };
+
+                    const options = ['pending', 'paid', 'shipped', 'delivered', 'cancelled'].map(opt => `
+                        <option value="${opt}" ${o.status === opt ? 'selected' : ''}>${opt.toUpperCase()}</option>
+                    `).join('');
+
+                    return `
+                        <tr class="border-b border-slate-900/50 py-4">
+                            <td class="py-4 font-bold text-white">#${o.id}</td>
+                            <td class="py-4 text-slate-300">
+                                <b>${o.user ? o.user.name : 'Unknown User'}</b><br>
+                                <span class="text-[10px] text-slate-500">${o.user ? o.user.email : ''}</span>
+                            </td>
+                            <td class="py-4 text-white font-extrabold">Rs. ${o.totalAmount}</td>
+                            <td class="py-4 text-slate-450 leading-tight">
+                                ${o.shippingAddress}<br>
+                                <span class="text-[10px]">Phone: ${o.phone}</span>
+                            </td>
+                            <td class="py-4 font-bold ${statusColors[o.status] || 'text-slate-400'}">${o.status.toUpperCase()}</td>
+                            <td class="py-4 text-right">
+                                <select onchange="updateOrderStatus(${o.id}, this.value)" class="bg-slate-900 border border-slate-800 text-white rounded px-2 py-1 text-[10px]">
+                                    ${options}
+                                </select>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+
+        async function handleAddProduct(e) {
+            e.preventDefault();
+            const name = document.getElementById('p-name').value;
+            const sku = document.getElementById('p-sku').value;
+            const price = parseFloat(document.getElementById('p-price').value);
+            const stock = parseInt(document.getElementById('p-stock').value);
+            const categoryId = parseInt(document.getElementById('p-category').value);
+            const image = document.getElementById('p-image').value;
+            const specsStr = document.getElementById('p-specs').value;
+            const description = document.getElementById('p-desc').value;
+
+            let specifications = {};
+            try {
+                specifications = JSON.parse(specsStr);
+            } catch (e) {
+                showToast('Specifications must be valid JSON object format!', 'error');
+                return;
+            }
+
+            const res = await fetchAPI('/api/products', {
+                method: 'POST',
+                body: JSON.stringify({ name, sku, price, stock, categoryId, image, specifications, description })
+            });
+
+            if (res.success) {
+                showToast('Product added successfully to inventory!', 'success');
+                document.getElementById('add-product-form').reset();
+                loadInventory();
+            } else {
+                showToast(res.message || 'Failed to catalog product', 'error');
+            }
+        }
+
+        async function deleteProduct(productId) {
+            if (!confirm('Are you sure you want to delete this product?')) return;
+            const res = await fetchAPI(`/api/products/${productId}`, {
+                method: 'DELETE'
+            });
+
+            if (res.success) {
+                showToast('Product removed from database', 'success');
+                loadInventory();
+            } else {
+                showToast(res.message || 'Failed to delete product', 'error');
+            }
+        }
+
+        async function updateOrderStatus(orderId, status) {
+            const res = await fetchAPI('/api/orders/status', {
+                method: 'PUT',
+                body: JSON.stringify({ orderId, status })
+            });
+
+            if (res.success) {
+                showToast('Order status updated successfully', 'success');
+                loadAllOrders();
+            } else {
+                showToast(res.message || 'Failed to update order status', 'error');
+            }
+        }
+
+        function switchTab(tab) {
+            const tabParts = document.getElementById('tab-parts');
+            const tabOrders = document.getElementById('tab-orders');
+            const contentParts = document.getElementById('content-parts');
+            const contentOrders = document.getElementById('content-orders');
+
+            if (tab === 'parts') {
+                tabParts.className = "px-5 py-2 rounded-lg font-bold text-xs bg-amber-500 text-slate-950 transition-smooth";
+                tabOrders.className = "px-5 py-2 rounded-lg font-bold text-xs text-slate-400 hover:text-white transition-smooth";
+                contentParts.classList.remove('hidden');
+                contentOrders.classList.add('hidden');
+                loadInventory();
+            } else {
+                tabOrders.className = "px-5 py-2 rounded-lg font-bold text-xs bg-amber-500 text-slate-950 transition-smooth";
+                tabParts.className = "px-5 py-2 rounded-lg font-bold text-xs text-slate-400 hover:text-white transition-smooth";
+                contentOrders.classList.remove('hidden');
+                contentParts.classList.add('hidden');
+                loadAllOrders();
+            }
+        }
+    </script>
+</body>
+</html>

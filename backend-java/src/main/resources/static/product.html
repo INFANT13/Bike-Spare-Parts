@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Details - BikeSparePro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-[#0a0f1d] text-slate-100 flex flex-col min-h-screen">
+
+    <header class="border-b border-slate-800/80 bg-[#0a0f1d]/90 backdrop-blur-md sticky top-0 z-40"></header>
+
+    <main class="flex-grow max-w-7xl mx-auto px-4 py-12 w-full">
+        <div id="product-container" class="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <!-- Dynamic Loading State -->
+            <div class="col-span-full text-center py-24 text-slate-500">Loading product details...</div>
+        </div>
+    </main>
+
+    <footer class="bg-slate-950"></footer>
+
+    <script src="js/app.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+
+        async function loadProductDetails() {
+            if (!productId) {
+                document.getElementById('product-container').innerHTML = '<div class="col-span-full text-center py-24 text-red-400 font-bold">No Product Selected. <a href="catalog.html" class="underline text-amber-500">Back to Catalog</a></div>';
+                return;
+            }
+
+            const data = await fetchAPI(`/api/products/${productId}`);
+            const container = document.getElementById('product-container');
+
+            if (data.success && data.product) {
+                const prod = data.product;
+                let specsHtml = '';
+                if (prod.specifications) {
+                    try {
+                        const specs = JSON.parse(prod.specifications);
+                        specsHtml = `
+                            <div class="space-y-3 pt-6 border-t border-slate-800">
+                                <h3 class="text-white font-extrabold text-sm uppercase tracking-wider">Specifications</h3>
+                                <table class="w-full text-sm text-slate-400">
+                                    <tbody>
+                                        ${Object.entries(specs).map(([key, val]) => `
+                                            <tr class="border-b border-slate-900/50 py-2">
+                                                <td class="font-bold text-slate-300 py-2.5 w-1/3">${key}</td>
+                                                <td class="py-2.5">${val}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        `;
+                    } catch (e) {
+                        console.error("Error parsing specifications JSON", e);
+                    }
+                }
+
+                container.innerHTML = `
+                    <!-- Product Image -->
+                    <div class="flex justify-center items-start">
+                        <div class="glass-panel p-6 rounded-3xl border border-slate-800 w-full max-w-lg aspect-square overflow-hidden bg-slate-900/40">
+                            <img src="${prod.image}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=600';" alt="${prod.name}" class="w-full h-full object-cover rounded-2xl">
+                        </div>
+                    </div>
+
+                    <!-- Product Specs & Details -->
+                    <div class="space-y-6">
+                        <div class="space-y-2">
+                            <span class="text-xs text-amber-500 uppercase tracking-widest font-extrabold">${prod.sku}</span>
+                            <h1 class="text-3xl md:text-4xl font-extrabold text-white leading-tight">${prod.name}</h1>
+                            <p class="text-sm text-slate-400">Category: <span class="text-slate-300 font-bold">${prod.category ? prod.category.name : 'Unassigned'}</span></p>
+                        </div>
+
+                        <div class="space-y-1">
+                            <span class="text-xs text-slate-400">Price</span>
+                            <p class="text-3xl font-black text-amber-500">Rs. ${prod.price}</p>
+                        </div>
+
+                        <div class="space-y-2">
+                            <span class="text-xs text-slate-400">Availability</span>
+                            <div class="flex items-center space-x-2">
+                                <span class="w-2.5 h-2.5 rounded-full ${prod.stock > 0 ? 'bg-emerald-500' : 'bg-red-500'}"></span>
+                                <span class="text-sm font-bold ${prod.stock > 0 ? 'text-emerald-400' : 'text-red-400'}">
+                                    ${prod.stock > 0 ? `${prod.stock} Units In Stock` : 'Out of Stock'}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <h3 class="text-white font-extrabold text-sm uppercase tracking-wider">Description</h3>
+                            <p class="text-slate-400 text-sm leading-relaxed">${prod.description || 'No description available for this spare part.'}</p>
+                        </div>
+
+                        ${prod.stock > 0 ? `
+                            <div class="flex items-center space-x-4 pt-4 border-t border-slate-800">
+                                <div class="flex items-center bg-slate-900 border border-slate-800 rounded-xl px-2">
+                                    <button onclick="changeQty(-1)" class="p-2 text-slate-400 hover:text-white font-bold text-lg">-</button>
+                                    <input type="number" id="purchase-qty" value="1" min="1" max="${prod.stock}" class="w-12 text-center bg-transparent border-none text-white focus:outline-none font-bold text-sm">
+                                    <button onclick="changeQty(1, ${prod.stock})" class="p-2 text-slate-400 hover:text-white font-bold text-lg">+</button>
+                                </div>
+                                <button onclick="addProductToCart(${prod.id})" class="px-8 py-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-sm transition-smooth flex items-center space-x-2 shadow-lg hover:shadow-amber-500/20">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                    <span>Add to Cart</span>
+                                </button>
+                            </div>
+                        ` : ''}
+
+                        ${specsHtml}
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `<div class="col-span-full text-center py-24 text-red-400 font-bold">Product not found. <a href="catalog.html" class="underline text-amber-500">Back to Catalog</a></div>`;
+            }
+        }
+
+        function changeQty(amt, maxStock) {
+            const input = document.getElementById('purchase-qty');
+            if (!input) return;
+            let val = parseInt(input.value) + amt;
+            if (val < 1) val = 1;
+            if (maxStock && val > maxStock) val = maxStock;
+            input.value = val;
+        }
+
+        async function addProductToCart(productId) {
+            const user = getUser();
+            if (!user) {
+                showToast('Please login to add items to your cart.', 'error');
+                setTimeout(() => {
+                    window.location.href = 'auth.html';
+                }, 1500);
+                return;
+            }
+
+            const qtyInput = document.getElementById('purchase-qty');
+            const qty = qtyInput ? parseInt(qtyInput.value) : 1;
+
+            const res = await fetchAPI('/api/cart/add', {
+                method: 'POST',
+                body: JSON.stringify({ productId, quantity: qty })
+            });
+
+            if (res.success) {
+                showToast(res.message || 'Added to cart!', 'success');
+                updateCartBadge();
+            } else {
+                showToast(res.message || 'Failed to add item', 'error');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadProductDetails);
+    </script>
+</body>
+</html>

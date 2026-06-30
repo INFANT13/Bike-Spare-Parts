@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parts Catalog - BikeSparePro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-[#0a0f1d] text-slate-100 flex flex-col min-h-screen">
+
+    <header class="border-b border-slate-800/80 bg-[#0a0f1d]/90 backdrop-blur-md sticky top-0 z-40"></header>
+
+    <main class="flex-grow max-w-7xl mx-auto px-4 py-8 space-y-6 w-full">
+        <div>
+            <h1 class="text-3xl font-extrabold text-white">Parts Catalog</h1>
+            <p class="text-slate-400 text-sm">Find genuine replacement spares for all major bike makes.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <!-- Filters Sidebar -->
+            <div class="glass-panel p-5 rounded-2xl border border-slate-800/80 space-y-6 h-fit">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <h3 class="text-white font-bold text-sm flex items-center space-x-1.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                        </svg>
+                        <span>Filter Options</span>
+                    </h3>
+                    <button onclick="resetFilters()" class="text-amber-500 hover:text-amber-400 font-medium text-xs">
+                        Clear All
+                    </button>
+                </div>
+
+                <!-- Search -->
+                <div class="space-y-2">
+                    <label class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Search Keyword</label>
+                    <input type="text" id="filter-search" placeholder="SKU, Name, Model..." class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm focus:outline-none focus:border-amber-500">
+                </div>
+
+                <!-- Category Selector -->
+                <div class="space-y-2">
+                    <label class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Category</label>
+                    <select id="filter-category" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm focus:outline-none focus:border-amber-500">
+                        <option value="">All Categories</option>
+                    </select>
+                </div>
+
+                <!-- Price Bounds -->
+                <div class="space-y-2">
+                    <label class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Price Range (Rs.)</label>
+                    <div class="flex gap-2">
+                        <input type="number" id="filter-min-price" placeholder="Min" class="w-1/2 px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm focus:outline-none focus:border-amber-500">
+                        <input type="number" id="filter-max-price" placeholder="Max" class="w-1/2 px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm focus:outline-none focus:border-amber-500">
+                    </div>
+                </div>
+
+                <!-- Sorting -->
+                <div class="space-y-2">
+                    <label class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Sort By</label>
+                    <select id="filter-sort" class="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm focus:outline-none focus:border-amber-500">
+                        <option value="newest">Newest Arrivals</option>
+                        <option value="price_asc">Price: Low to High</option>
+                        <option value="price_desc">Price: High to Low</option>
+                        <option value="name_asc">Name: A to Z</option>
+                        <option value="name_desc">Name: Z to A</option>
+                    </select>
+                </div>
+
+                <button onclick="applyFilters()" class="w-full py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition-smooth">
+                    Apply Filters
+                </button>
+            </div>
+
+            <!-- Products Catalog Grid -->
+            <div class="lg:col-span-3 space-y-6">
+                <div id="catalog-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <!-- Dynamic Products -->
+                    <div class="col-span-full text-center py-12 text-slate-500">Loading catalog items...</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-slate-950"></footer>
+
+    <script src="js/app.js"></script>
+    <script>
+        // Parse URL params
+        const urlParams = new URLSearchParams(window.location.search);
+        let selectedCategory = urlParams.get('category') || '';
+
+        async function initCatalog() {
+            // Load Categories for filter dropdown
+            const catData = await fetchAPI('/api/products/categories');
+            const catSelect = document.getElementById('filter-category');
+            if (catData.success && catData.categories) {
+                catData.categories.forEach(cat => {
+                    const opt = document.createElement('option');
+                    opt.value = cat.slug;
+                    opt.innerText = cat.name;
+                    if (cat.slug === selectedCategory) {
+                        opt.selected = true;
+                    }
+                    catSelect.appendChild(opt);
+                });
+            }
+
+            // Set other filters from URL
+            if (urlParams.get('search')) document.getElementById('filter-search').value = urlParams.get('search');
+            if (urlParams.get('minPrice')) document.getElementById('filter-min-price').value = urlParams.get('minPrice');
+            if (urlParams.get('maxPrice')) document.getElementById('filter-max-price').value = urlParams.get('maxPrice');
+            if (urlParams.get('sort')) document.getElementById('filter-sort').value = urlParams.get('sort');
+
+            loadProducts();
+        }
+
+        async function loadProducts() {
+            const search = document.getElementById('filter-search').value;
+            const category = document.getElementById('filter-category').value;
+            const minPrice = document.getElementById('filter-min-price').value;
+            const maxPrice = document.getElementById('filter-max-price').value;
+            const sort = document.getElementById('filter-sort').value;
+
+            const params = new URLSearchParams();
+            if (search) params.append('search', search);
+            if (category) params.append('category', category);
+            if (minPrice) params.append('minPrice', minPrice);
+            if (maxPrice) params.append('maxPrice', maxPrice);
+            if (sort) params.append('sort', sort);
+
+            const grid = document.getElementById('catalog-grid');
+            grid.innerHTML = '<div class="col-span-full text-center py-12 text-slate-500">Searching inventory...</div>';
+
+            const data = await fetchAPI(`/api/products?${params.toString()}`);
+            if (data.success && data.products) {
+                if (data.products.length === 0) {
+                    grid.innerHTML = '<div class="col-span-full text-center py-12 text-slate-500">No items found matching the selected filters.</div>';
+                    return;
+                }
+
+                grid.innerHTML = data.products.map(prod => `
+                    <div class="glass-panel p-4 rounded-2xl flex flex-col space-y-4 relative group">
+                        <div class="relative rounded-xl overflow-hidden aspect-video bg-slate-800/50">
+                            <img src="${prod.image}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=400';" alt="${prod.name}" class="w-full h-full object-cover">
+                        </div>
+                        <div class="space-y-1.5 flex-grow">
+                            <span class="text-xs text-slate-500 uppercase tracking-wider">${prod.sku}</span>
+                            <h3 class="text-white font-extrabold text-base line-clamp-1">${prod.name}</h3>
+                            <p class="text-slate-400 text-xs line-clamp-2 h-8">${prod.description || ''}</p>
+                        </div>
+                        <div class="flex items-center justify-between border-t border-slate-800/80 pt-3">
+                            <span class="text-lg font-black text-amber-500">Rs. ${prod.price}</span>
+                            <div class="flex space-x-2">
+                                <a href="product.html?id=${prod.id}" class="px-3 py-2 bg-slate-850 hover:bg-slate-800 text-slate-300 border border-slate-700/80 font-bold rounded-xl text-xs transition-smooth cursor-pointer flex items-center justify-center">
+                                    Details
+                                </a>
+                                <button onclick="addToCart(${prod.id})" class="p-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition-smooth cursor-pointer flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                grid.innerHTML = '<div class="col-span-full text-center py-12 text-red-400">Failed to fetch catalog. Please reload page.</div>';
+            }
+        }
+
+        async function addToCart(productId) {
+            const user = getUser();
+            if (!user) {
+                showToast('Please login to add items to your cart.', 'error');
+                setTimeout(() => {
+                    window.location.href = 'auth.html';
+                }, 1500);
+                return;
+            }
+
+            const res = await fetchAPI('/api/cart/add', {
+                method: 'POST',
+                body: JSON.stringify({ productId, quantity: 1 })
+            });
+
+            if (res.success) {
+                showToast(res.message || 'Added to cart!', 'success');
+                updateCartBadge();
+            } else {
+                showToast(res.message || 'Failed to add item to cart', 'error');
+            }
+        }
+
+        function applyFilters() {
+            loadProducts();
+        }
+
+        function resetFilters() {
+            document.getElementById('filter-search').value = '';
+            document.getElementById('filter-category').value = '';
+            document.getElementById('filter-min-price').value = '';
+            document.getElementById('filter-max-price').value = '';
+            document.getElementById('filter-sort').value = 'newest';
+            loadProducts();
+        }
+
+        document.addEventListener('DOMContentLoaded', initCatalog);
+    </script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BikeSparePro - Premium Spare Parts Shop</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-[#0a0f1d] text-slate-100 flex flex-col min-h-screen">
+
+    <!-- Header Navigation (Populated by js/app.js) -->
+    <header class="border-b border-slate-800/80 bg-[#0a0f1d]/90 backdrop-blur-md sticky top-0 z-40"></header>
+
+    <!-- Main Content -->
+    <main class="flex-grow">
+        <!-- Hero Section -->
+        <section class="max-w-7xl mx-auto px-4 py-16 md:py-24 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div class="space-y-6">
+                <div class="inline-flex items-center space-x-2 px-3 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-full text-xs font-semibold uppercase tracking-wider">
+                    <span>⚡ Engineered for Performance</span>
+                </div>
+                <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight leading-none text-white">
+                    Premium Spare Parts <br>
+                    <span class="text-amber-500">For Your Ride</span>
+                </h1>
+                <p class="text-slate-400 text-base md:text-lg max-w-md">
+                    Explore high-quality, genuine replacement parts. Find engine components, suspension gears, brakes, and electrical spares.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 pt-4">
+                    <a href="catalog.html" class="px-6 py-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-center transition-smooth shadow-lg hover:shadow-amber-500/20">
+                        Browse Catalog
+                    </a>
+                    <a href="#categories" class="px-6 py-3.5 border border-slate-700 hover:border-slate-500 hover:bg-slate-800/30 text-white font-bold rounded-xl text-center transition-smooth">
+                        Shop By Category
+                    </a>
+                </div>
+            </div>
+            <div class="relative flex justify-center">
+                <!-- Visual Element -->
+                <div class="w-80 h-80 rounded-full bg-amber-500/10 absolute filter blur-3xl pulse-glow"></div>
+                <img src="https://images.unsplash.com/photo-1558981806-ec527fa84c39?q=80&w=600&auto=format&fit=crop" 
+                     alt="Sports Motorcycle" 
+                     class="rounded-3xl border border-slate-800 shadow-2xl relative z-10 w-full max-w-md object-cover h-[350px]">
+            </div>
+        </section>
+
+        <!-- Categories Section -->
+        <section id="categories" class="bg-slate-900/40 py-16 border-y border-slate-900">
+            <div class="max-w-7xl mx-auto px-4 space-y-8">
+                <div class="text-center max-w-md mx-auto space-y-2">
+                    <h2 class="text-3xl font-extrabold text-white">Shop by Category</h2>
+                    <p class="text-slate-400 text-sm">Find exactly what you need grouped by vehicle assemblies.</p>
+                </div>
+
+                <div id="categories-grid" class="grid grid-cols-2 md:grid-cols-5 gap-4 pt-4">
+                    <!-- Dynamic Categories go here -->
+                    <div class="col-span-full text-center py-6 text-slate-500">Loading categories...</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Featured Products -->
+        <section class="max-w-7xl mx-auto px-4 py-16 space-y-8">
+            <div class="flex justify-between items-end">
+                <div class="space-y-2">
+                    <h2 class="text-3xl font-extrabold text-white">Featured Spares</h2>
+                    <p class="text-slate-400 text-sm">Our most popular replacement items.</p>
+                </div>
+                <a href="catalog.html" class="text-amber-500 hover:text-amber-400 font-bold text-sm flex items-center space-x-1.5 transition-smooth">
+                    <span>View all parts</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </a>
+            </div>
+
+            <div id="featured-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                <!-- Dynamic Products go here -->
+                <div class="col-span-full text-center py-12 text-slate-500">Loading featured products...</div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer (Populated by js/app.js) -->
+    <footer class="bg-slate-950"></footer>
+
+    <!-- Scripts -->
+    <script src="js/app.js"></script>
+    <script>
+        async function loadHomeData() {
+            try {
+                // Fetch Categories
+                const catData = await fetchAPI('/api/products/categories');
+                const catGrid = document.getElementById('categories-grid');
+                if (catData.success && catData.categories) {
+                    catGrid.innerHTML = catData.categories.map(cat => `
+                        <a href="catalog.html?category=${cat.slug}" class="glass-panel glass-panel-hover p-6 rounded-2xl flex flex-col items-center text-center space-y-3 cursor-pointer">
+                            <div class="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500">
+                                <!-- Fallback category icon based on name -->
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </div>
+                            <h3 class="text-white font-bold text-sm tracking-wide">${cat.name}</h3>
+                        </a>
+                    `).join('');
+                }
+
+                // Fetch Products for featured section
+                const prodData = await fetchAPI('/api/products?sort=newest');
+                const featuredGrid = document.getElementById('featured-grid');
+                if (prodData.success && prodData.products) {
+                    const products = prodData.products.slice(0, 4);
+                    featuredGrid.innerHTML = products.map(prod => `
+                        <div class="glass-panel p-4 rounded-2xl flex flex-col space-y-4 relative group">
+                            <div class="relative rounded-xl overflow-hidden aspect-video bg-slate-800/50">
+                                <img src="${prod.image}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1485965120184-e220f721d03e?q=80&w=400';" alt="${prod.name}" class="w-full h-full object-cover">
+                            </div>
+                            <div class="space-y-1.5 flex-grow">
+                                <span class="text-xs text-slate-500 uppercase tracking-wider">${prod.sku}</span>
+                                <h3 class="text-white font-extrabold text-base line-clamp-1">${prod.name}</h3>
+                                <p class="text-slate-400 text-xs line-clamp-2 h-8">${prod.description || ''}</p>
+                            </div>
+                            <div class="flex items-center justify-between border-t border-slate-800/80 pt-3">
+                                <span class="text-lg font-black text-amber-500">Rs. ${prod.price}</span>
+                                <a href="product.html?id=${prod.id}" class="px-3.5 py-2 bg-slate-850 hover:bg-slate-800 text-slate-300 border border-slate-700/80 font-bold rounded-xl text-xs transition-smooth cursor-pointer">
+                                    Details
+                                </a>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (err) {
+                console.error("Error loading home details:", err);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadHomeData);
+    </script>
+</body>
+</html>
