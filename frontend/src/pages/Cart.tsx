@@ -51,7 +51,7 @@ const Cart: React.FC = () => {
             <div className="glass-panel rounded-2xl border border-slate-800/80 overflow-hidden">
               <div className="divide-y divide-slate-850">
                 {cartItems.map((item) => {
-                  const prod = item.Product;
+                  const prod = item.product;
                   if (!prod) return null;
                   const itemSubtotal = parseFloat(prod.price as any) * item.quantity;
 

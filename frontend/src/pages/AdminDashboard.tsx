@@ -365,8 +365,8 @@ const AdminDashboard: React.FC = () => {
                 <tr key={ord.id}>
                   <td className="py-3 pr-2 font-mono font-bold text-white">#{ord.id}</td>
                   <td className="py-3 px-2">
-                    <p className="font-semibold text-white text-xs mb-0.5">{ord.User?.name}</p>
-                    <p className="text-slate-550 text-xxs mb-0">{ord.User?.email}</p>
+                    <p className="font-semibold text-white text-xs mb-0.5">{ord.user?.name}</p>
+                    <p className="text-slate-550 text-xxs mb-0">{ord.user?.email}</p>
                   </td>
                   <td className="py-3 px-2 text-amber-500 font-bold">Rs. {ord.totalAmount}</td>
                   <td className="py-3 px-2">

@@ -131,7 +131,7 @@ const ProductDetails: React.FC = () => {
         <div className="space-y-6">
           <div className="space-y-2">
             <span className="px-3 py-1 rounded bg-slate-900 border border-slate-800 text-slate-400 text-xs font-semibold uppercase tracking-wider">
-              {product.Category ? product.Category.name : 'Genuine Spare Parts'}
+              {product.category ? product.category.name : 'Genuine Spare Parts'}
             </span>
             <h1 className="text-3xl md:text-4xl font-extrabold text-white leading-tight">{product.name}</h1>
             <div className="flex items-center space-x-4 text-slate-400 text-xs font-mono">

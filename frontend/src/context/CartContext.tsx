@@ -6,7 +6,7 @@ export interface CartItem {
   id: number;
   quantity: number;
   productId: number;
-  Product: {
+  product: {
     id: number;
     name: string;
     price: number;
@@ -130,7 +130,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Compute total items and price
   const cartCount = cartItems.reduce((total, item) => total + item.quantity, 0);
   const cartTotal = cartItems.reduce((total, item) => {
-    const price = item.Product ? parseFloat(item.Product.price as any) : 0;
+    const price = item.product ? parseFloat(item.product.price as any) : 0;
     return total + price * item.quantity;
   }, 0);
 

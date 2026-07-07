@@ -353,11 +353,11 @@ const Checkout: React.FC = () => {
               {cartItems.map((item) => (
                 <div key={item.id} className="py-2.5 flex justify-between text-xs">
                   <div>
-                    <span className="text-white font-bold block">{item.Product?.name}</span>
-                    <span className="text-slate-500">Qty: {item.quantity} x Rs. {item.Product?.price}</span>
+                    <span className="text-white font-bold block">{item.product?.name}</span>
+                    <span className="text-slate-500">Qty: {item.quantity} x Rs. {item.product?.price}</span>
                   </div>
                   <span className="text-slate-300 font-mono font-medium self-center">
-                    Rs. {(item.Product ? parseFloat(item.Product.price as any) : 0) * item.quantity}
+                    Rs. {(item.product ? parseFloat(item.product.price as any) : 0) * item.quantity}
                   </span>
                 </div>
               ))}

@@ -225,10 +225,10 @@ const Profile: React.FC = () => {
 
                   {/* Order items nested listing */}
                   <div className="space-y-2">
-                    {ord.OrderItems.map((item) => (
+                    {ord.orderItems.map((item) => (
                       <div key={item.id} className="flex justify-between items-center text-xs">
                         <span className="text-slate-300 font-medium">
-                          {item.Product ? item.Product.name : 'Spare Part'} (x{item.quantity})
+                          {item.product ? item.product.name : 'Spare Part'} (x{item.quantity})
                         </span>
                         <span className="text-white font-mono font-semibold">Rs. {item.price * item.quantity}</span>
                       </div>

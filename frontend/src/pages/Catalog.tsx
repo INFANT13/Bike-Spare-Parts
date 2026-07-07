@@ -303,7 +303,7 @@ const Catalog: React.FC = () => {
 
                     <div className="space-y-1">
                       <p className="text-amber-500 font-semibold text-xxs uppercase tracking-wider">
-                        {prod.Category ? prod.Category.name : 'Spare Part'}
+                        {prod.category ? prod.category.name : 'Spare Part'}
                       </p>
                       <h3 className="text-white font-bold text-sm line-clamp-2 h-10">{prod.name}</h3>
                     </div>

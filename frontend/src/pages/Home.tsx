@@ -217,9 +217,9 @@ const Home: React.FC = () => {
                       Sold Out
                     </span>
                   )}
-                  {prod.Category && (
+                  {prod.category && (
                     <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-slate-950/80 border border-slate-800 text-slate-400 text-xxs font-medium">
-                      {prod.Category.name}
+                      {prod.category.name}
                     </span>
                   )}
                 </div>
